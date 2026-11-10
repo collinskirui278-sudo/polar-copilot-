@@ -93,9 +93,9 @@ async function getDigicustResult(declarationId) {
 // Convert Digicust HS (can be 10-11 digits EU) to EAC 8-digit for Kenya
 function toEAC_HS(hsCode) {
   if (!hsCode) return null
-  const clean = String(hsCode).replace(/\./g, '').replace(/\s/g, '')
+  const clean = String(hsCode).replace(/\D/g,'').replace(/\s/g, '')
   // Take first 8 digits - first 6 are global WCO, next 2 are EAC
   return clean.substring(0, 8)
 }
 
-module.exports = { sendToDigicust, getDigicustResult, toEAC_HS }5
+module.exports = { sendToDigicust, getDigicustResult, toEAC_HS }
