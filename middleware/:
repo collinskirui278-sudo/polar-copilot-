@@ -1,0 +1,9 @@
+polar-copilot-  (your existing repo)
+├── app/                  <- your frontend, already there
+├── middleware/           <- NEW, we add this here
+│   ├── src/index.js
+│   ├── src/services/kra-validation.js
+│   ├── package.json
+│   └── .env.example
+├── package.json          <- your frontend one, don't touch
+└── netlify.toml
