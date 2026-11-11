@@ -20,7 +20,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 
   { name: 'idf', maxCount: 1 },
   { name: 'certificateOfOrigin', maxCount: 1 },
   { name: 'insurance', maxCount: 1 },
-]), async (req, res) =>
+]), async (req, res) => {
    if (!req.files || Object.keys(req.files).length === 0) {
     return res.status(400).json({ success: false, error: 'No documents uploaded' })
   }
