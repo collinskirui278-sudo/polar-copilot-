@@ -31,7 +31,14 @@ export default function Home() {
 
         <label>Packing List (PDF)</label>
         <input required type="file" accept=".pdf" />
+<label>IDF - Import Declaration Form (PDF) - Optional</label>
+<input type="file" accept=".pdf" />
 
+<label>Certificate of Origin (PDF) - Optional</label>
+<input type="file" accept=".pdf" />
+
+<label>Insurance Certificate (PDF) - Optional</label>
+<input type="file" accept=".pdf" />
         <button type="submit" style={{ padding: 12, background: "black", color: "white", border: "none", cursor: "pointer" }}>
           Upload & Get Reference
         </button>
