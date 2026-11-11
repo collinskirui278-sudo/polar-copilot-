@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Polar Copilot - Login</title>
+<style>
+  *{box-sizing:border-box;font-family:Inter,system-ui,Arial,sans-serif}
+  body{margin:0;background:#f1f3f6;display:flex;justify-content:center;min-height:100vh}
+  .phone{width:100%;max-width:430px;background:#fff;min-height:100vh;padding:28px 22px}
+  .logo{display:flex;gap:12px;align-items:center}
+  .logo-icon{width:64px;height:64px;background:#0a1f44;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px}
+  .logo h1{margin:0;color:#0a1f44;font-size:30px;line-height:1}
+  .logo p{margin:4px 0 0;color:#333;font-size:13px}
+  h2{color:#0a1f44;font-size:32px;margin:28px 0 6px}
+  .sub{color:#444;margin:0 0 22px}
+  .label{font-weight:700;margin:18px 0 8px;color:#0a1f44}
+  .roles{display:flex;gap:8px}
+  .role{flex:1;padding:12px;border:1.5px solid #ddd;border-radius:12px;background:#fff;cursor:pointer;font-weight:700}
+  .role.active{background:#ff5a00;color:#fff;border-color:#ff5a00}
+  .phone-box{display:flex;border:1.5px solid #ddd;border-radius:12px;overflow:hidden;align-items:center}
+  .phone-box span{padding:0 10px;font-weight:800;border-right:1px solid #ddd}
+  .phone-box input{flex:1;border:0;padding:16px 10px;font-size:16px;outline:none}
+  .otp-box{display:flex;gap:8px;margin-top:12px}
+  .otp-box input{flex:1;padding:14px;border:1.5px solid #ddd;border-radius:10px;text-align:center;font-size:18px;letter-spacing:3px}
+  button.main{width:100%;margin-top:22px;padding:16px;background:#ff5a00;color:#fff;border:0;border-radius:12px;font-size:18px;font-weight:800;cursor:pointer}
+  button.secondary{width:100%;margin-top:10px;padding:14px;background:#0a1f44;color:#fff;border:0;border-radius:12px;cursor:pointer}
+  .note{text-align:center;color:#555;font-size:13px;margin-top:14px}
+  .note a{color:#ff5a00;font-weight:800;text-decoration:none}
+  .msg{margin-top:12px;padding:10px;border-radius:10px;display:none;font-size:14px}
+  .msg.ok{display:block;background:#e6ffed}
+  .msg.err{display:block;background:#ffe6e6}
+  @media(min-width:700px){.phone{max-width:520px;border-radius:20px;margin:24px 0;min-height:auto;box-shadow:0 10px 40px rgba(0,0,0,.1)}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="logo">
+    <div class="logo-icon">🚚</div>
+    <div><h1>Polar<br>Copilot</h1><p>Kenya Trucking Logistics</p></div>
+  </div>
+
+  <h2>Welcome Back Driver</h2>
+  <p class="sub">Enter your phone number to receive an OTP and continue securely</p>
+
+  <div class="label">Role • I am a:</div>
+  <div class="roles" id="roles">
+    <button class="role active" data-role="carrier">Carrier</button>
+    <button class="role" data-role="broker">Broker</button>
+    <button class="role" data-role="shipper">Shipper</button>
+  </div>
+
+  <div class="label">Phone Number</div>
+  <div class="phone-box"><span>🇰🇪 +254</span><input id="phone" placeholder="7XX XXX XXX" inputmode="numeric"></div>
+  <button class="secondary" onclick="sendOTP()">Send OTP</button>
+
+  <div class="label">Enter OTP</div>
+  <div class="otp-box"><input id="otp" placeholder="123456" maxlength="6" inputmode="numeric"></div>
+
+  <div id="msg" class="msg"></div>
+  <button class="main" onclick="verifyOTP()">Continue →</button>
+  <p class="note">Secure via M-Pesa • Fast OTP via SMS</p>
+  <p class="note">Don't have an account? <a href="/signup.html">Create Account</a></p>
+  <p class="note"><a href="/admin.html">Super Admin Login</a></p>
+</div>
+
+<script>
+  // CHANGE THIS to your real Render backend URL
+  const API_BASE = "https://your-backend.onrender.com";
+  let selectedRole = "carrier";
+
+  document.querySelectorAll(".role").forEach(btn=>{
+    btn.onclick=()=>{
+      document.querySelectorAll(".role").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedRole = btn.dataset.role;
+    }
+  });
+
+  function showMsg(text, ok){
+    const el=document.getElementById("msg");
+    el.textContent=text; el.className="msg "+(ok?"ok":"err");
+  }
+
+  function getPhone(){
+    let p=document.getElementById("phone").value.replace(/\D/g,"");
+    if(p.startsWith("0")) p=p.slice(1);
+    if(p.startsWith("254")) p=p.slice(3);
+    return "+254"+p;
+  }
+
+  async function sendOTP(){
+    const phone=getPhone();
+    if(phone.length!==13){ showMsg("Enter a valid Safaricom number, e.g. 7XX XXX XXX", false); return; }
+    showMsg("Sending OTP to "+phone+" as "+selectedRole+"...", true);
+    try{
+      const res=await fetch(API_BASE+"/api/auth/send-otp",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({phone, role:selectedRole})
+      });
+      const data=await res.json();
+      // For testing without backend: if backend not ready, we still allow demo OTP 123456
+      if(!res.ok) showMsg("Backend not connected yet. Use demo OTP 123456 for testing.", false);
+      else showMsg("OTP sent! Check SMS.", true);
+    }catch(e){
+      showMsg("Backend not connected yet. Use demo OTP 123456 for testing.", false);
+    }
+  }
+
+  async function verifyOTP(){
+    const otp=document.getElementById("otp").value.trim();
+    const phone=getPhone();
+    if(otp==="123456"){ // demo fallback
+      localStorage.setItem("polar_user", JSON.stringify({phone, role:selectedRole}));
+      showMsg("Login successful! Redirecting to dashboard...", true);
+      setTimeout(()=>window.location.href="/dashboard.html", 800);
+      return;
+    }
+    try{
+      const res=await fetch(API_BASE+"/api/auth/verify-otp",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({phone, otp, role:selectedRole})
+      });
+      const data=await res.json();
+      if(!res.ok) throw new Error(data.message||"Wrong OTP");
+      localStorage.setItem("polar_token", data.token);
+      localStorage.setItem("polar_user", JSON.stringify(data.user));
+      window.location.href="/dashboard.html";
+    }catch(e){ showMsg(e.message, false); }
+  }
+</script>
+</body>
+</html>
