@@ -12,19 +12,28 @@ const { validateForKRA } = require('../services/kra-validation')
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } })
 
 // 1. UPLOAD - Frontend sends 1 PDF
-router.post('/upload', upload.single('document'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, error: 'No document uploaded - field name must be "document"' })
-    }
 
-    const fileId = req.body.fileId || `FILE-${Date.now()}`
-    const type = req.body.type || 'import'
+  router.post('/upload', upload.fields([
+  { name: 'commercialInvoice', maxCount: 1 },
+  { name: 'packingList', maxCount: 1 },
+  { name: 'billOfLading', maxCount: 1 },
+  { name: 'idf', maxCount: 1 },
+  { name: 'certificateOfOrigin', maxCount: 1 },
+  { name: 'insurance', maxCount: 1 },
+]), async (req, res) =>
+   if (!req.files || Object.keys(req.files).length === 0) {
+    return res.status(400).json({ success: false, error: 'No documents uploaded' })
+  }
 
-    console.log(`[DIGICUST] ${fileId} - Uploading ${req.file.originalname}`)
+  const fileId = req.body.fileId || `FILE-${Date.now()}`
+  const type = req.body.type || 'import'
 
-    const result = await sendToDigicust(req.file.buffer, req.file.originalname, type)
+  const allFiles = Object.values(req.files).flat()
+  const firstFile = allFiles[0]
 
+  console.log(`[DIGICUST] ${fileId} - Uploading ${allFiles.length} files, first: ${firstFile.originalname}`)
+
+  const result = await sendToDigicust(firstFile.buffer, firstFile.originalname, fileId, type)
     if (!result.success) {
       return res.status(500).json({ success: false, fileId, error: result.error })
     }
